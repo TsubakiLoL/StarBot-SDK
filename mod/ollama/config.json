@@ -1,0 +1,1 @@
+{"autoload":{"ollama":"/example_autoload/autoload.gd"},"i":"OllamaAI组件，用于与Ollama平台进行交互","name":"ollama","name_view":"OllamaAI组件","node":{"Ollama请求器":"/example_node/chat_node_ollama_request.gd"},"panel":{},"triger":{}}

@@ -1,0 +1,1 @@
+{"autoload":{},"i":"集线器集合，使数据更加易读。","name":"hub","name_view":"集线器","node":{"字典集线器":"/node/chat_node_dic_hub.gd","字符串集线器":"/node/chat_node_string_hub.gd","数字集线器":"/node/chat_node_float_hub.gd"},"panel":{},"triger":{}}

@@ -1,0 +1,1 @@
+{"autoload":{"dialogue":"/example_autoload/autoload.gd"},"i":"这是一个示例项目","name":"dialogue","name_view":"对话","node":{"剧本启动":"/example_node/chat_node_dialogue_control.gd","剧本添加器":"/example_node/chat_node_add_dialogue.gd","剧本选择":"/example_node/chat_node_dialogue_select.gd"},"panel":{},"triger":{}}
