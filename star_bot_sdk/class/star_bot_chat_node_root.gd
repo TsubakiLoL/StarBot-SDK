@@ -1,4 +1,4 @@
-extends Object
+extends RefCounted
 ##NodeChat的根节点，用于管理节点交互及对整个节点图进行操作
 class_name StarBotChatNodeRoot
 
@@ -7,39 +7,55 @@ class_name StarBotChatNodeRoot
 var environment:StarBotEnvironment
 
 ##单例映射
-var GlobalConfig:
+var GlobalConfig:StarBotGlobalConfig:
 	get():
 		return environment.get_singletion("GlobalConfig")
-var ModLoader:
+var ModLoader:StarBotModLoader:
 	get():
 		return environment.get_singletion("ModLoader")
 	
-var PromptMessageControler:
+var PromptMessageControler:StarBotPromptMessageControler:
 	get():
 		return environment.get_singletion("PromptMessageControler")
+var StarBotNode:StarBot:
+	get():
+		return environment.get_singletion("StarBot")
 
+var judge_timer:Timer
 
 func _init(environment:StarBotEnvironment) -> void:
 	self.environment=environment
-
+	judge_timer=Timer.new()
+	judge_timer.wait_time=judge_time
+	judge_timer.one_shot=false
+	judge_timer.timeout.connect(judge)
+	StarBotNode.add_child(judge_timer)
+	
 
 
 ##当前根节点拥有的节点列表
 var node_list:Array[StarBotChatNode]
 ##用户实例的字典
-var user_instance_array:Dictionary={} #UID:[now_state,time_last_move,data_dic:Dictionary{}]      
+var user_instance_array:Dictionary[String,Array]={} #UID:[now_state,time_last_move,data_dic:Dictionary{}]      
 
 ##默认状态的进入状态引用
-var init_state
+var init_state:StarBotChatNode
 ##当用户长时间没进行交互时，删除用户实例需要经过的时间（s）
 var time_to_delete_instance:float=30
 ##每次遍历字典判定过期的间隔时间，用于节省性能
-var judge_time:float=2
+var judge_time:float=2:
+	set(value):
+		##重置计时，重新启动
+		##setter内部赋值，使用原始赋值，不会递归
+		judge_time=value
+		judge_timer.wait_time=value
+		if not judge_timer.is_stopped():
+			judge_timer.stop()
+			judge_timer.start()
 ##节点命名计数器
-var ind=0
+var ind:int=0
 ##是否启动
 var is_start:bool=false
-
 ##添加节点
 func add_node(n:StarBotChatNode):
 	n.id=str(ind)
@@ -52,7 +68,7 @@ func find_node_by_id(id:String):
 			return i
 
 ##新建新的用户实例
-func add_user_instance(id:String):
+func add_user_state_instance(id:String):
 	if not user_instance_array.has(id):
 		if init_state!=null:
 			var new_user_instance_data=[init_state,Time.get_ticks_msec()]
@@ -60,12 +76,14 @@ func add_user_instance(id:String):
 		else:
 			print("进入节点为空！")
 ##删除用户实例
-func delete_user_instance(id:String):
+func delete_user_state_instance(id:String):
 	user_instance_array.erase(id)
+
+
 ##改变状态到指定的状态，如果当前用户实例不存在，则新建实例
 func change_state(id:String,state)->void:
 	if not user_instance_array.has(id):
-		add_user_instance(id)
+		add_user_state_instance(id)
 	user_instance_array[id][0]=state
 	user_instance_array[id][1]=Time.get_ticks_msec()
 	pass
@@ -74,12 +92,11 @@ func change_state(id:String,state)->void:
 
 ##设置进入状态
 func set_init_state(state:StarBotChatNode):
-	if init_state!=null and init_state is StarBotChatNode:
+	if init_state!=null and init_state is StarBotChatNode and is_instance_valid(init_state):
 		init_state.set_variable_value_emit_signal("is_init",false)
 	init_state=state
 	
 
-	
 ##判定字典时间，擦除已经过期的用户状态实例（建议定期执行）
 func judge()->void:
 	for i in user_instance_array.keys():
@@ -87,13 +104,13 @@ func judge()->void:
 		var now_time=Time.get_ticks_msec()
 		var before_time=data[1]
 		if before_time is int and now_time-before_time>=time_to_delete_instance*1000:
-			delete_user_instance(i)
-			pass
+			delete_user_state_instance(i)
 
 ##向字典中写入自身数据
 func export_data(data:Dictionary):
 	data["time_to_delete_instance"]=time_to_delete_instance
 	data["judge_time"]=judge_time
+
 ##从字典中读取数据
 func load_from_data(data:Dictionary):
 	if data.has("time_to_delete_instance") and data.has("judge_time"):
@@ -103,19 +120,19 @@ func load_from_data(data:Dictionary):
 func delete():
 	if PromptMessageControler.is_linked(prompt_message):
 		PromptMessageControler.dislink(prompt_message)
-	call_deferred("free")
+	#call_deferred("free")
 
 var prompt_list:Array=[]
 #当前是否在debug中
 var is_in_debug:bool=false
-		
+
 ##收到消息
 func prompt_message(id:String,triger_type:String,mes:Dictionary):
 	if init_state==null:
 		push_error("缺少初始根节点")
 		return
 	if not id in user_instance_array:
-		add_user_instance(id)
+		add_user_state_instance(id)
 	var now_state=user_instance_array[id][0]
 	if is_in_debug:
 		debug_cache.append({
@@ -128,7 +145,8 @@ func prompt_message(id:String,triger_type:String,mes:Dictionary):
 		debug_cache_update.emit()
 	else:
 		await VLR(id,now_state,[[triger_type,mes]])
-	
+
+##当调试消息更新时发出
 signal debug_cache_update
 
 var debug_cache:Array=[]
@@ -179,7 +197,6 @@ func VLR(id:String,from_node:StarBotChatNode,from_data:Array):
 		stack_index.pop_back()
 		stack_data.pop_back()
 func VLR_debug(id:String,from_node:StarBotChatNode,from_data:Array):
-	
 	var stack:Array[StarBotChatNode]=[]
 	var stack_index:Array[int]
 	var stack_data:Array=[]
@@ -246,14 +263,19 @@ func VLR_debug(id:String,from_node:StarBotChatNode,from_data:Array):
 ##启动此根节点
 func start():
 	PromptMessageControler.link(prompt_message)
+	
 	is_start=true
+	judge_timer.start()
+
 ##结束此根节点
 func end():
 	if is_start:
 		if PromptMessageControler.is_linked(prompt_message):
 			PromptMessageControler.dislink(prompt_message)
 		is_start=false
-##重载此根节点ID队列，将命名计数器自动转换为当前节点队列的上限+1
+	judge_timer.stop()
+
+##重载此根节点ID队列，将命名计数器自动转换为当前节点id的最大值+1
 func reload_id():
 	for i in node_list:
 		if i.id.is_valid_int():
@@ -262,3 +284,10 @@ func reload_id():
 				ind=nid
 	ind+=1
 			
+
+##析构函数
+func _notification(what: int) -> void:
+	if what==NOTIFICATION_PREDELETE:
+		judge_timer.queue_free()
+		if PromptMessageControler.is_linked(prompt_message):
+			PromptMessageControler.dislink(prompt_message)

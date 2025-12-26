@@ -58,7 +58,7 @@ func create_new_root()->StarBotChatNodeRoot:
 func parse_string(str:String)->StarBotChatNodeRoot:
 	return StarBotSerializater.parse_string(str,environment)
 ##将NodeRoot序列化
-func stringfy(root:StarBotChatNodeRoot):
+func stringfy(root:StarBotChatNodeRoot)->String:
 	return StarBotSerializater.stringfy_state_root(root)
 
 ##重载插件，当path为空字符串时，则按照上一次载入插件的路径进行载入

@@ -12,7 +12,7 @@ extends StarBotChatSingleton
 
 class_name StarBotPromptMessageControler
 
-
+##发布用户消息（id为用户在全局的唯一表示，triger_type为触发器类型，mes为消息内容）
 func prompt(id:String,triger_type:String,mes:Dictionary):
 	for  i in triget_array:
 		if i!=null:
@@ -20,16 +20,16 @@ func prompt(id:String,triger_type:String,mes:Dictionary):
 	
 	
 	pass
-#链接的函数
+##已经链接的函数
 var triget_array:Array[Callable]=[]
-#链接
+##链接函数
 func link(cal:Callable):
 	if cal not in triget_array:
 		triget_array.append(cal)
-#是否链接
+##是否链接到函数
 func is_linked(cal:Callable)->bool:
 	return cal in triget_array
-#取消链接
+##取消链接
 func dislink(cal:Callable):
 	if cal in triget_array:
 		triget_array.pop_at(triget_array.find(cal))

@@ -49,7 +49,7 @@ static func parse_string(str:String,environment:StarBotEnvironment=null)->StarBo
 		var data=node_dic[i]
 		if (not data is Dictionary) or (not data.has("mod_from")) or(not data.has("mod_node")):
 			return null
-		var type=int(data["type"])
+		#var type=int(data["type"])
 		var mod_from:String=str(data["mod_from"])
 		var mod_node:String=str(data["mod_node"])
 		var node_class=ModLoader.get_node_class(mod_from,mod_node)

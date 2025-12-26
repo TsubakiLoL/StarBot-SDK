@@ -1,8 +1,8 @@
 extends Node
+##单例基类
 class_name StarBotChatSingleton
-
+##单例名称
 var singleton_name:String="未命名"
-
 const GREEN=Color.GREEN
 const RED=Color.RED
 

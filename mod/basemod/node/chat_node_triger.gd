@@ -1,12 +1,6 @@
 extends StarBotChatNode
 
-static func get_triger_type_name(type:String)->String:
-	
-	if triger_type_name.has(type):
-		return str(triger_type_name[type])
-	else:
-		return "未命名触发器类型"+str(type)
-	pass
+
 var triget_t:String
 func _init(root:StarBotChatNodeRoot) -> void:
 	super._init(root)
