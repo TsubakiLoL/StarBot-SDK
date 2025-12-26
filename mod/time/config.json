@@ -1,1 +1,20 @@
-{"autoload":{},"i":"用于获取与进行时间运算的工具","name":"time","name_view":"时间","node":{"日期字符串输出":"/example_node/time_string_output.gd","时间戳日期转换器":"/example_node/chat_node_timeunix_to_dic.gd","时间戳时分秒转换器":"/example_node/chat_node_time_unix_to_hms.gd","时间戳输出器":"/example_node/chat_node_time_output.gd"},"panel":{},"triger":{}}
+{
+	"autoload": {
+
+	},
+	"i": "用于获取与进行时间运算的工具",
+	"name": "time",
+	"name_view": "时间",
+	"node": {
+		"日期字符串输出": "/node/time_string_output.gd",
+		"时间戳日期转换器": "/node/chat_node_timeunix_to_dic.gd",
+		"时间戳时分秒转换器": "/node/chat_node_time_unix_to_hms.gd",
+		"时间戳输出器": "/node/chat_node_time_output.gd"
+	},
+	"panel": {
+
+	},
+	"triger": {
+
+	}
+}

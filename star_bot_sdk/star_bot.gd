@@ -37,6 +37,10 @@ var singleton_scene:Dictionary[String,GDScript]={
 	"PromptMessageControler":StarBotPromptMessageControler
 }
 
+func _ready() -> void:
+	singleton_name="StarBot"
+
+
 ##初始化，初始化后才开始运行
 func initialize(args:Dictionary[String,String]):
 	print(logo)
@@ -53,8 +57,15 @@ func create_new_root()->StarBotChatNodeRoot:
 ##从序列化的字符串中反序列化出NodeRoot
 func parse_string(str:String)->StarBotChatNodeRoot:
 	return StarBotSerializater.parse_string(str,environment)
-	pass
 ##将NodeRoot序列化
 func stringfy(root:StarBotChatNodeRoot):
 	return StarBotSerializater.stringfy_state_root(root)
-	pass
+
+##重载插件，当path为空字符串时，则按照上一次载入插件的路径进行载入
+func reload_mod(path:String=""):
+	if not ModLoader is StarBotModLoader :
+		e("未找到ModLoader单例，可能还未进行初始化")
+		return 
+	if path!="":
+		environment.environment_args["mod_load_path"]=path
+	ModLoader.reload()

@@ -103,8 +103,6 @@ func load_from_data(data:Dictionary):
 func delete():
 	if PromptMessageControler.is_linked(prompt_message):
 		PromptMessageControler.dislink(prompt_message)
-	for i in node_list:
-		i.delete()
 	call_deferred("free")
 
 var prompt_list:Array=[]
@@ -162,7 +160,7 @@ func VLR(id:String,from_node:StarBotChatNode,from_data:Array):
 	while stack.size()!=0:
 		while stack_index.back()<stack.back().next_node_array.size():
 			var now_next=stack.back().next_node_array[stack_index.back()]
-			var now_node:StarBotChatNode=now_next[0]
+			var now_node:StarBotChatNode=now_next[0].get_ref()
 			var parent_node:StarBotChatNode=stack.back()
 			var parent_index:int=stack_index.back()
 			var parent_data=stack_data.back()
@@ -174,7 +172,7 @@ func VLR(id:String,from_node:StarBotChatNode,from_data:Array):
 				)
 			stack_index[stack_index.size()-1]+=1
 			if now_node.next_node_array.size()!=0 and is_out_r:
-				stack.append(now_next[0])
+				stack.append(now_next[0].get_ref())
 				stack_index.append(0)
 				stack_data.append(output_data_dic[now_node])
 		stack.pop_back()
@@ -211,7 +209,7 @@ func VLR_debug(id:String,from_node:StarBotChatNode,from_data:Array):
 	while stack.size()!=0:
 		while stack_index.back()<stack.back().next_node_array.size():
 			var now_next=stack.back().next_node_array[stack_index.back()]
-			var now_node:StarBotChatNode=now_next[0]
+			var now_node:StarBotChatNode=now_next[0].get_ref()
 			var parent_node:StarBotChatNode=stack.back()
 			var parent_index:int=stack_index.back()
 			var parent_data=stack_data.back()
@@ -224,7 +222,7 @@ func VLR_debug(id:String,from_node:StarBotChatNode,from_data:Array):
 			stack_index[stack_index.size()-1]+=1
 			print("执行结果"+str(is_out_r))
 			if now_node.next_node_array.size()!=0 and is_out_r:
-				stack.append(now_next[0])
+				stack.append(now_next[0].get_ref())
 				stack_index.append(0)
 				stack_data.append(output_data_dic[now_node])
 				var frame_data_n:Dictionary={

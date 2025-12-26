@@ -9,7 +9,7 @@
 #----------------------
 
 
-extends Object
+extends RefCounted
 ##基础用于可视化编辑的行为节点
 class_name StarBotChatNode
 
@@ -97,8 +97,12 @@ func set_variable_value_emit_signal(variable_name:String,value):
 
 ##链接的下级节点
 var next_node_array:Array[Array]=[]
+
+
 ##链接的上级节点
 var from_node_array:Array[Array]=[]
+
+
 ##状态机根节点引用
 var root:StarBotChatNodeRoot
 func _init(root:StarBotChatNodeRoot) -> void:
@@ -177,7 +181,7 @@ func export_data(data:Dictionary):
 	data["next_node_array"]=next_array
 	var from_array:Array=[]
 	for i in from_node_array:
-		var new_array=[i[0].id,i[1],i[2]]
+		var new_array=[i[0].get_ref().id,i[1],i[2]]
 		from_array.append(new_array)
 	data["from_node_array"]=from_array
 ##链接到下级节点	
@@ -187,40 +191,35 @@ func connect_with_next_node(to_node:StarBotChatNode,from_port:int,to_port:int)->
 	if from_port<output_port_array.size() and to_port<to_node.input_port_array.size():
 		if output_port_array[from_port]==to_node.input_port_array[to_port]:
 			for i in next_node_array:
-				if i[0]==to_node and i[1]==from_port and i[2]==to_port:
+				if i[0] is WeakRef and i[0].get_ref()==to_node and i[1]==from_port and i[2]==to_port:
 					#print("已经存在链接")
 					return false
-			var new_connect_message=[to_node,from_port,to_port]
+			var new_connect_message=[weakref(to_node),from_port,to_port]
 			next_node_array.append(new_connect_message)
 			to_node.connect_with_from_node(self,from_port,to_port)
 			return true
 		else:
-			#print("类型不兼容")
-			#print("当前节点类型：",ChatNodeGraph.node_name[type],"输出类型:",output_port_array[from_port])
-			#print("下级节点类型： ",ChatNodeGraph.node_name[to_node.type]," 输入类型：",to_node.input_port_array[to_port])
 			return false
 	else:
 		#print("超出端口数量")
 		return false
 		
-	pass
 ##被链接到上级节点（由上级节点调用）
 func connect_with_from_node(from_node:StarBotChatNode,from_port:int,to_port:int):
-	from_node_array.append([from_node,from_port,to_port])
+	from_node_array.append([weakref(from_node),from_port,to_port])
 	pass
 ##与下级节点断开链接
 func disconnect_with_next_node(to_node:StarBotChatNode,from_port:int,to_port:int)->bool:
 	if from_port<output_port_array.size() and to_port<to_node.input_port_array.size():
 		var ind:int=-1
 		for i in range(next_node_array.size()):
-			if next_node_array[i][0]==to_node and next_node_array[i][1]==from_port and next_node_array[i][2]==to_port:
+			if next_node_array[i][0] is WeakRef and next_node_array[i][0].get_ref()==to_node and next_node_array[i][1]==from_port and next_node_array[i][2]==to_port:
 				ind=i
 		if ind!=-1:
 			#print("断开成功")
 			to_node.disconnect_with_from_node(self,from_port,to_port)
 			next_node_array.pop_at(ind)
 			return true
-			pass
 		else:
 			#print("不存在链接")
 			to_node.disconnect_with_from_node(self,from_port,to_port)
@@ -233,7 +232,7 @@ func disconnect_with_from_node(from_node:StarBotChatNode,from_port:int,to_port:i
 	if from_port<from_node.output_port_array.size() and to_port<input_port_array.size():
 		var ind:int=-1
 		for i in range(from_node_array.size()):
-			if from_node_array[i][0]==from_node and from_node_array[i][1]==from_port and from_node_array[i][2]==to_port:
+			if from_node_array[i][0] is WeakRef and from_node_array[i][0].get_ref() ==from_node and from_node_array[i][1]==from_port and from_node_array[i][2]==to_port:
 				ind=i
 		if ind!=-1:
 			from_node_array.pop_at(ind)
@@ -242,12 +241,3 @@ func disconnect_with_from_node(from_node:StarBotChatNode,from_port:int,to_port:i
 			return false
 	else:
 		return false
-##删除自己，并解除链接
-func delete():
-	while from_node_array.size()!=0:
-		var from_real:StarBotChatNode=from_node_array[0][0]
-		from_real.disconnect_with_next_node(self,from_node_array[0][1],from_node_array[0][2])
-	while next_node_array.size()!=0:
-		var to_real:StarBotChatNode=next_node_array[0][0]
-		disconnect_with_next_node(to_real,next_node_array[0][1],next_node_array[0][2])
-	call_deferred("free")

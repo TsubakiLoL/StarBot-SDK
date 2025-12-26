@@ -30,10 +30,6 @@ var mod_panel_db:Dictionary={}
 
 var load_mod_path:String:
 	get():
-		#if OS.is_debug_build():
-			#return "res://mod/"
-		#else:
-			#return OS.get_executable_path().get_base_dir()+"/mod" 
 		if environment==null:
 			return "res://mod/"
 		return  environment.get_arg("mod_load_path","res://mod/")
@@ -75,6 +71,7 @@ func load_mod_from_path(path:String):
 				install_mod(mod_name,dic)
 			file_name = dir.get_next()
 		dir.list_dir_end()
+	s("插件加载完毕")
 ##从json路径中读取字典
 func load_dictionary_from_json(json_path:String):
 	var f=FileAccess.open(json_path,FileAccess.READ)
@@ -273,18 +270,14 @@ func reload():
 	mod_autoload_db={}
 	#mod节点类集
 	mod_nodeclass_db={}
-
-
 	#mod加载的触发器类型
 	mod_triger_type_name_db={}
-
 	#mod加载的在主界面的面板的数据
 	mod_panel_db={}
 	load_mod_from_path(load_mod_path)
 	mod_changed.emit()
-	
-	
-	pass
+
+
 ##检测当前是否具有此名字的mod
 func has_mod(mod_name:String)->bool:
 	return mod_origin_db.has(mod_name)

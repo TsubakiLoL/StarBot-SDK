@@ -7,7 +7,7 @@ var database_json_path:String=""
 #当前持有的数据库缓存
 var data_cache:Dictionary={}
 func _ready():
-	print("hello database!")
+	l("hello database!")
 	database_json_path=ModLoader.get_mod_path("database")+"/all.db"
 	data_cache=get_db()
 	pass
